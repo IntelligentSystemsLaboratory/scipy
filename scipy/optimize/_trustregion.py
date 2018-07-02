@@ -101,7 +101,8 @@ class BaseQuadraticSubproblem(object):
 
 def _minimize_trust_region(fun, x0, args=(), jac=None, hess=None, hessp=None,
                            subproblem=None, initial_trust_radius=1.0,
-                           max_trust_radius=1000.0, eta=0.15, gtol=1e-4,
+                           max_trust_radius=1000.0, change_ratio=0.25,
+                           eta=0.15, gtol=1e-4,
                            maxiter=None, disp=False, return_all=False,
                            callback=None, inexact=True, **unknown_options):
     """
@@ -178,8 +179,7 @@ def _minimize_trust_region(fun, x0, args=(), jac=None, hess=None, hessp=None,
     k = 0
 
     # search for the function min
-    # do not even start if the gradient is small enough
-    while m.jac_mag >= gtol:
+    while True:
 
         # Solve the sub-problem.
         # This gives us the proposed step relative to the current position
@@ -208,7 +208,7 @@ def _minimize_trust_region(fun, x0, args=(), jac=None, hess=None, hessp=None,
 
         # update the trust radius according to the actual/predicted ratio
         if rho < 0.25:
-            trust_radius *= 0.25
+            trust_radius *= change_ratio
         elif rho > 0.75 and hits_boundary:
             trust_radius = min(2*trust_radius, max_trust_radius)
 
